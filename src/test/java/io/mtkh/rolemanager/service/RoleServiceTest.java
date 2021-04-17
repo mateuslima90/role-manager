@@ -4,18 +4,21 @@ import io.mtkh.rolemanager.builder.RoleDTOBuilder;
 import io.mtkh.rolemanager.configuration.RoleMapper;
 import io.mtkh.rolemanager.domain.Role;
 import io.mtkh.rolemanager.domain.RoleDTO;
+import io.mtkh.rolemanager.exception.RoleAlreadyExistsException;
 import io.mtkh.rolemanager.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.lenient;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,22 +36,29 @@ public class RoleServiceTest {
     public void whenRoleInformedThenItShouldBeCreated() {
         //give
         RoleDTO expectedRoleDTO = RoleDTOBuilder.builder().build().toDTO();
-        //Role expectedRole = new Role("123", "developer", "developer");
         Role expectedRole = roleMapper.toModel(expectedRoleDTO);
-        //RoleDTO expectedRoleDTO = roleMapper.toDTO(expectedRole);
 
         //when
-        //when(roleRepository.findByRoleName(expectedRole.getRoleName())).thenReturn(Optional.empty());
-        when(roleRepository.save(expectedRole)).thenReturn(expectedRole);
+        when(roleRepository.findByRoleName(expectedRole.getRoleName())).thenReturn(Optional.empty());
+        when(roleRepository.save(any(Role.class))).thenReturn(expectedRole);
 
         //then
         RoleDTO savedRole = roleService.createRole(expectedRoleDTO);
-        //Role savedRole = roleService.createRole2(expectedRole);
-        //RoleDTO savedRole = roleService.createRole3(expectedRole);
 
         assertThat(savedRole.getId(), is(equalTo(expectedRole.getId())));
         assertThat(savedRole.getRoleName(), is(equalTo(expectedRole.getRoleName())));
-
     }
 
+    @Test
+    public void whenRoleInformedThenAlreadyExist() {
+        //give
+        RoleDTO expectedRoleDTO = RoleDTOBuilder.builder().build().toDTO();
+        Role duplicatedRole = roleMapper.toModel(expectedRoleDTO);
+
+        //when
+        when(roleRepository.findByRoleName(expectedRoleDTO.getRoleName())).thenReturn(Optional.of(duplicatedRole));
+
+        //then
+        assertThrows(RoleAlreadyExistsException.class, () -> roleService.createRole(expectedRoleDTO));
+    }
 }

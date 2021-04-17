@@ -4,8 +4,8 @@ import io.mtkh.rolemanager.configuration.RoleMapper;
 import io.mtkh.rolemanager.domain.Role;
 import io.mtkh.rolemanager.domain.RoleDTO;
 import io.mtkh.rolemanager.domain.Transaction;
+import io.mtkh.rolemanager.exception.RoleAlreadyExistsException;
 import io.mtkh.rolemanager.repository.RoleRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,22 +28,19 @@ public class RoleService {
                 .orElseThrow();
     }
 
+    public List<RoleDTO> getAllRoles() {
+        return this.roleRepository.findAll()
+                .stream()
+                .map(roleMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public RoleDTO createRole(RoleDTO role) {
+        verifyIfExistRole(role.getRoleName());
+
         Role r = roleMapper.toModel(role);
         Role savedRole = roleRepository.save(r);
         return roleMapper.toDTO(savedRole);
-    }
-
-    public Role createRole2(Role role) {
-        //Role r = roleMapper.toModel(role);
-        //Role savedRole = roleRepository.save(r);
-        return roleRepository.save(role);
-    }
-
-    public RoleDTO createRole3(Role role) {
-        //Role r = roleMapper.toModel(role);
-        //Role savedRole = roleRepository.save(r);
-        return roleMapper.toDTO(roleRepository.save(role));
     }
 
     public RoleDTO updateRole(RoleDTO role) throws Exception {
@@ -61,13 +58,6 @@ public class RoleService {
         return roleMapper.toDTO(roleRepository.save(newRole));
     }
 
-    public List<RoleDTO> getAllRoles() {
-        return this.roleRepository.findAll()
-                .stream()
-                .map(roleMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
     public Role updateTransactionInRoleByRoleName(Transaction transaction, String roleName){
         Role role = this.roleRepository.findByRoleName(roleName).orElseThrow();
         role.addTransaction(transaction);
@@ -81,5 +71,10 @@ public class RoleService {
                 .collect(Collectors.toSet());
         role.setTransactions(transactionList);
         this.roleRepository.save(role);
+    }
+
+    private void verifyIfExistRole(String roleName) {
+        this.roleRepository.findByRoleName(roleName)
+                .ifPresent(role -> { throw new RoleAlreadyExistsException(role.getRoleName()); });
     }
 }
