@@ -18,7 +18,6 @@ public class RoleDTOBuilder {
     @Builder.Default
     private String description = "developer";
 
-    @Builder.Default
     private Set<Transaction> transactions;
 
     public RoleDTO toDTO() {

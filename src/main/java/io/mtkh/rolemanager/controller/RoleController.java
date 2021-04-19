@@ -3,6 +3,7 @@ package io.mtkh.rolemanager.controller;
 import io.mtkh.rolemanager.domain.RoleDTO;
 import io.mtkh.rolemanager.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
@@ -23,6 +24,7 @@ public class RoleController {
         return roleService.getRoleByRoleName(roleName);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/role")
     public RoleDTO createRole(@Valid @RequestBody RoleDTO role) {
         return roleService.createRole(role);
