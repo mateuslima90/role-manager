@@ -47,10 +47,6 @@ public class RoleService {
         Role r = roleMapper.toModel(role);
         RoleDTO persistedRole = getRoleByRoleName(r.getRoleName());
 
-        if(persistedRole.getId() == null){
-            throw new Exception("Role not found with this roleName");
-        }
-
         Role newRole = new Role();
         newRole.setId(persistedRole.getId());
         newRole.setRoleName(persistedRole.getRoleName());
@@ -58,19 +54,19 @@ public class RoleService {
         return roleMapper.toDTO(roleRepository.save(newRole));
     }
 
-    public Role updateTransactionInRoleByRoleName(Transaction transaction, String roleName){
+    public Role addTransactionInRoleByRoleName(Transaction transaction, String roleName){
         Role role = this.roleRepository.findByRoleName(roleName).orElseThrow();
         role.addTransaction(transaction);
         return this.roleRepository.save(role);
     }
 
-    public void deleteTransactionInRole(String transactionName, String roleName) {
+    public RoleDTO deleteTransactionInRole(String transactionName, String roleName) {
         Role role = this.roleRepository.findByRoleName(roleName).orElseThrow();
         Set<Transaction> transactionList = role.getTransactions().stream()
                 .filter(transaction -> !transaction.getTransactionName().equals(transactionName))
                 .collect(Collectors.toSet());
         role.setTransactions(transactionList);
-        this.roleRepository.save(role);
+        return roleMapper.toDTO(this.roleRepository.save(role));
     }
 
     private void verifyIfExistRole(String roleName) {

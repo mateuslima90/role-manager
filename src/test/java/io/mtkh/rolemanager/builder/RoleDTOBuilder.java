@@ -21,7 +21,6 @@ public class RoleDTOBuilder {
     @Builder.Default
     private Set<Transaction> transactions;
 
-
     public RoleDTO toDTO() {
         return new RoleDTO(id, roleName, description);
     }
